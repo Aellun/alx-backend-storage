@@ -1,10 +1,7 @@
-echo "
 -- SQL script that creates a table users with
--- id, email, name
+    --id,email,name
 CREATE TABLE IF NOT EXISTS users (
-    id INT NOT NULL AUTO_INCREMENT,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255),
-    PRIMARY KEY (id)
+    name VARCHAR(255)
 );
-"
