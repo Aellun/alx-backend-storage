@@ -1,10 +1,10 @@
 -- SQL script that ranks country origins
 -- of bands by the number of (non-unique) fans
 SELECT 
-    origin AS origin,
+    origin,
     SUM(fans) AS nb_fans
 FROM 
-    bands
+    metal_bands
 GROUP BY 
     origin
 ORDER BY 
