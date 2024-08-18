@@ -12,12 +12,11 @@
 '''
 
 
-import pymongo
 from pymongo import MongoClient
 
 
 def log_nginx_stats(mongo_collection):
-    """Provides statistics about Nginx logs stored in MongoDB"""
+    '''Provides statistics about Nginx logs stored in MongoDB'''
     print(f"{mongo_collection.estimated_document_count()} logs")
 
     print("Methods:")
