@@ -19,7 +19,7 @@ def top_students(mongo_collection):
         },
         {
             # Group by student id and name, calculate the average score
-            "$project": {
+            "$group": {
                 "_id": "$_id",
                 "name": {"$first": "$name"},
                 "averageScore": {"$avg": "$scores.score"}
