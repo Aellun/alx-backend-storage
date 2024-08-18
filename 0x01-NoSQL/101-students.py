@@ -12,21 +12,19 @@ def top_students(mongo_collection):
     - A list of students with their average scores, sorted in descending order.
     '''
     # Aggregation pipeline to calculate average scores and sort them
-    pipeline = [
+    return mongo_collection.aggregate([
         {
-            # Unwind the scores array to deconstruct each score
-            "$unwind": "$scores"
-        },
-        {
-            # Group by student id and name, calculate the average score
-            "$group": {
-                "_id": "$_id",
-                "name": {"$first": "$name"},
-                "averageScore": {"$avg": "$scores.score"}
+            "$project": {
+                # Include the name field
+                "name": 1,
+                # Calculate average score
+                "averageScore": {"$avg": "$topics.score"}
             }
         },
         {
-            # Sort the results by averageScore in descending order
-            "$sort": {"averageScore": -1}
+            "$sort": {
+                # Sort by average score in descending order
+                "averageScore": -1
+            }
         }
-    ]
+    ])
