@@ -1,19 +1,8 @@
 #!/usr/bin/env python3
-'''script that provides some stats about Nginx logs stored in MongoDB:
-    Database: logs
-    Collection: nginx
-
-    first line: x logs where x is the number of documents in this collection
-    second line: Methods:
-    5 lines with the number of documents with
-    the method = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    method=GET
-    path=/status
+'''Improve 12-log_stats.py by adding the top 10
+    of the most present IPs in the collection nginx of the database logs
 '''
-
-
 from pymongo import MongoClient
-
 # Connect to the MongoDB server;the logs database and nginx collection
 if __name__ == "__main__":
     client = MongoClient('mongodb://127.0.0.1:27017')

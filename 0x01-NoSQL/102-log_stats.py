@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 
-
 from pymongo import MongoClient
 
 # Connect to the MongoDB server;the logs database and nginx collection
