@@ -35,6 +35,7 @@ Execute the wrapped function to retrieve the output.
 Store the output using rpush in the "...:outputs" list, then return the output.
 Decorate Cache.store with call_history.
 ======================================================================================
+replay function to display the history of calls of a particular function
 '''
 
 import redis
@@ -61,8 +62,8 @@ def call_history(method: Callable) -> Callable:
         Wrapper function that logs input arguments and
         outputs to Redis, then calls the original method.
         '''
-        # Create keys for inputs and outputs based
-        # on the qualified name of the function
+        # Create keys for inputs and outputs
+        # based on the qualified name of the function
         func_name = f"{method.__module__}.{method.__qualname__}"
         inputs_key = f"{func_name}:inputs"
         outputs_key = f"{func_name}:outputs"
@@ -78,6 +79,7 @@ def call_history(method: Callable) -> Callable:
 
         # Return the result
         return result
+
     return wrapper
 
 
@@ -180,3 +182,25 @@ class Cache:
         # Use the get method with a conversion function
         # that converts bytes to an integer
         return self.get(key, fn=int)
+
+
+def replay(method: Callable):
+    '''
+    Display the history of calls for a particular function.
+    Args:
+        method (Callable): The function whose call history is to be displayed.
+    '''
+    # Create keys for inputs and outputs
+    # based on the qualified name of the function
+    func_name = f"{method.__module__}.{method.__qualname__}"
+    inputs_key = f"{func_name}:inputs"
+    outputs_key = f"{func_name}:outputs"
+
+    # Retrieve all inputs and outputs from Redis
+    inputs = method.__self__._redis.lrange(inputs_key, 0, -1)
+    outputs = method.__self__._redis.lrange(outputs_key, 0, -1)
+
+    # Format and print the history
+    print(f"{method.__qualname__} was called {len(inputs)} times:")
+    for inp, outp in zip(inputs, outputs):
+        print(f"{method.__qualname__}(*{eval(inp)}) -> {outp.decode('utf-8')}")
