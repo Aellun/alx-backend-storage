@@ -35,14 +35,15 @@ def cache_decorator(expiry_time: int) -> Callable:
             # Generate cache key based on function arguments
             key = f"cache:{args[0]}"
             # Check if result is in cache
-            if redis_client.exists(key):
+            cached_result = redis_client.get(key)
+            if cached_result:
                 print("Cache hit")
-                return redis_client.get(key).decode('utf-8')
+                return cached_result.decode('utf-8')
 
             print("Cache miss")
             # Call the original function
             result = func(*args, **kwargs)
-            # Cache the result
+            # Cache the result with expiration time
             redis_client.setex(key, expiry_time, result)
             return result
         return wrapper
@@ -59,8 +60,11 @@ def get_page(url: str) -> str:
             str: The HTML content of the URL.
     '''
     response = requests.get(url)
-    response.raise_for_status()  # Raise an HTTPError for bad responses
+    # Raise an HTTPError for bad responses
+    response.raise_for_status()
+
     # Track the number of times this URL was accessed
     access_key = f"count:{url}"
     redis_client.incr(access_key)
+
     return response.text
