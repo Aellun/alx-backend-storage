@@ -20,6 +20,21 @@ Also, implement 2 new methods: get_str and get_int
 that will automatically parametrize Cache.get with
 the correct conversion function.
 ===================================================================================
+define a call_history decorator to store the history of inputs and outputs
+for a particular function.Everytime the original function will be called,
+we will add its input parameters to one list in redis,and store its output
+into another list.In call_history, use the decorated function’s qualified
+name and append ":inputs" and ":outputs" to create input and output list keys,
+respectively.call_history has a single parameter named method that is a
+Callable and returns a Callable. In the new function that the decorator will
+return, use rpush to append the input arguments.
+Remember that Redis can only store strings, bytes and numbers.
+Therefore, we can simply use str(args) to normalize.
+We can ignore potential kwargs for now.
+Execute the wrapped function to retrieve the output.
+Store the output using rpush in the "...:outputs" list, then return the output.
+Decorate Cache.store with call_history.
+======================================================================================
 '''
 
 import redis
@@ -29,6 +44,41 @@ from functools import wraps
 
 # Define a type alias for the return type
 CacheDataType = Union[str, bytes, int, float, None]
+
+
+def call_history(method: Callable) -> Callable:
+    '''
+    Decorator to store the history of function calls
+    (inputs and outputs) in Redis.
+    Args:
+        method (Callable): The method to be decorated.
+    Returns:
+        Callable: The wrapped method with call history logging.
+    '''
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        '''
+        Wrapper function that logs input arguments and
+        outputs to Redis, then calls the original method.
+        '''
+        # Create keys for inputs and outputs based
+        # on the qualified name of the function
+        func_name = f"{method.__module__}.{method.__qualname__}"
+        inputs_key = f"{func_name}:inputs"
+        outputs_key = f"{func_name}:outputs"
+
+        # Store the input arguments in Redis
+        self._redis.rpush(inputs_key, str(args))
+
+        # Call the original method
+        result = method(self, *args, **kwargs)
+
+        # Store the output in Redis
+        self._redis.rpush(outputs_key, str(result))
+
+        # Return the result
+        return result
+    return wrapper
 
 
 def count_calls(method: Callable) -> Callable:
@@ -68,6 +118,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         '''
