@@ -15,7 +15,7 @@
 
 import redis
 import uuid
-from typing import Union
+from typing import Callable, Optional, Union
 
 
 class Cache:
@@ -42,3 +42,51 @@ class Cache:
 
         # Return the generated key
         return key
+
+    def get(
+        self,
+        key: str,
+        fn: Optional[Callable] = None
+    ) -> Union[str, bytes, int, float, None]:
+        '''
+            Retrieve data from the Redis cache using a
+            key and an optional conversion function.
+        Args:
+            key (str): The key to retrieve data for.
+            fn (Optional[Callable]):
+            A callable function that converts the retrieved
+            data to the desired format.
+        Returns:
+            Union[str, bytes, int, float, None]: The retrieved data,
+            optionally converted using the fn callable.
+            If the key does not exist, returns None.
+        '''
+        data = self._redis.get(key)
+
+        return fn(data) if fn else data if data is not None else None
+
+    def get_str(self, key: str) -> Optional[str]:
+        '''
+        Retrieve data from Redis and convert it to a string.
+        Args:
+            key (str): The key to retrieve data for.
+        Returns:
+            Optional[str]: The retrieved data as a string,
+            or None if the key does not exist.
+        '''
+        # Use the get method with a conversion function
+        # that decodes bytes to a string
+        return self.get(key, fn=lambda d: d.decode("utf-8"))
+
+    def get_int(self, key: str) -> Optional[int]:
+        '''
+        Retrieve data from Redis and convert it to an integer.
+        Args:
+            key (str): The key to retrieve data for.
+        Returns:
+            Optional[int]: The retrieved data as an integer,
+            or None if the key does not exist.
+        '''
+        # Use the get method with a conversion function
+        # that converts bytes to an integer
+        return self.get(key, fn=int)
