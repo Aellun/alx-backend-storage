@@ -86,7 +86,8 @@ class Cache:
         # Return the generated key
         return key
 
-    def get(self, key: str, fn: Optional[Callable] = None) -> CacheDataType:
+    def get(self, key: str, fn: Optional[Callable] = None
+            ) -> CacheDataType:
         '''
         Retrieve data from the Redis cache using a key
         and an optional conversion function.
